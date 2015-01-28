@@ -398,6 +398,7 @@ static PyObject *rotsampling(PyObject *self, PyObject *args, PyObject *kwargs)
 
   if (sampling_n <= 0) {
     PyErr_SetString(PyExc_ValueError, "sampling_n must be positive.");
+    return NULL;
   }
 
   if (return_weights_bool_obj == NULL) {
