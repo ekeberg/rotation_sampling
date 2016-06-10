@@ -412,12 +412,12 @@ static PyObject *rotsampling(PyObject *self, PyObject *args, PyObject *kwargs)
   }
   
   int number_of_rotations = n_to_samples(sampling_n)/2;
-  int rotations_dim[] = {number_of_rotations, 4};
-  PyObject *rotations_array = (PyObject *)PyArray_FromDims(2, rotations_dim, NPY_FLOAT64);
+  npy_intp rotations_dim[] = {number_of_rotations, 4};
+  PyObject *rotations_array = (PyObject *)PyArray_SimpleNew(2, rotations_dim, NPY_FLOAT64);
   double *rotations_raw = PyArray_DATA((PyArrayObject *)rotations_array);
   
-  int weights_dim[] = {number_of_rotations};
-  PyObject *weights_array = (PyObject *)PyArray_FromDims(1, weights_dim, NPY_FLOAT64);
+  npy_intp weights_dim[] = {number_of_rotations};
+  PyObject *weights_array = (PyObject *)PyArray_SimpleNew(1, weights_dim, NPY_FLOAT64);
   double *weights_raw = PyArray_DATA((PyArrayObject *)weights_array);
 
   generate_rotation_list(sampling_n, (Quaternion*)rotations_raw, weights_raw);
