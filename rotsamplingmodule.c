@@ -4,28 +4,30 @@
 #include <math.h>
 #include <stdio.h>
 
-const float tau = 1.6180339887498949; // the golden ratio
+#define float_type double
+
+const float_type tau = 1.6180339887498949; // the golden ratio
 
 typedef struct{
-  double q[4];
+  float_type q[4];
 }Quaternion;
 
 int n_to_samples(int n){return 20*(n+5*pow(n,3));}
 
 void quaternion_normalize(Quaternion *a)
 {
-  double abs = sqrt(pow(a->q[0],2) + pow(a->q[1],2) + pow(a->q[2],2) + pow(a->q[3],2));
+  float_type abs = sqrt(pow(a->q[0],2) + pow(a->q[1],2) + pow(a->q[2],2) + pow(a->q[3],2));
   a->q[0] = a->q[0]/abs;
   a->q[1] = a->q[1]/abs;
   a->q[2] = a->q[2]/abs;
   a->q[3] = a->q[3]/abs;
 }
 
-double scalar_product_with_best_center(Quaternion quaternion, double * centers) {
+float_type scalar_product_with_best_center(Quaternion quaternion, float_type * centers) {
   /* find closest center */
-  double best_dist = 0.;
+  float_type best_dist = 0.;
   int best_index = 0;
-  double dist;
+  float_type dist;
   for (int i = 0; i < 600; i++) {
     dist = ((quaternion.q[0] * centers[4*i+0] + quaternion.q[1] * centers[4*i+1] +
 	     quaternion.q[2] * centers[4*i+2] + quaternion.q[3] * centers[4*i+3]) / 
@@ -40,13 +42,13 @@ double scalar_product_with_best_center(Quaternion quaternion, double * centers) 
   }
 
   /* calculate scalar product */
-  double scalar_product = ((quaternion.q[0] * centers[4*best_index+0] + quaternion.q[1] * centers[4*best_index+1] +
+  float_type scalar_product = ((quaternion.q[0] * centers[4*best_index+0] + quaternion.q[1] * centers[4*best_index+1] +
 			    quaternion.q[2] * centers[4*best_index+2] + quaternion.q[3] * centers[4*best_index+3]) /
 			   sqrt(pow(quaternion.q[0], 2) + pow(quaternion.q[1], 2) + pow(quaternion.q[2], 2) + pow(quaternion.q[3], 2)));
   return scalar_product;
 }
 
-int generate_rotation_list(const int n, Quaternion *return_list, double *return_weights) {
+int generate_rotation_list(const int n, Quaternion *return_list, float_type *return_weights) {
   Quaternion *rotation_list = malloc(120*sizeof(Quaternion));
 
   for (int i = 0; i < 120; i++) {
@@ -61,10 +63,10 @@ int generate_rotation_list(const int n, Quaternion *return_list, double *return_
     for (int i2 = 0; i2 < 2; i2++) {
       for (int i3 = 0; i3 < 2; i3++) {
 	for (int i4 = 0; i4 < 2; i4++) {
-	  rotation_list[8*i1+4*i2+2*i3+i4].q[0] = -0.5 + (double)i1;
-	  rotation_list[8*i1+4*i2+2*i3+i4].q[1] = -0.5 + (double)i2;
-	  rotation_list[8*i1+4*i2+2*i3+i4].q[2] = -0.5 + (double)i3;
-	  rotation_list[8*i1+4*i2+2*i3+i4].q[3] = -0.5 + (double)i4;
+	  rotation_list[8*i1+4*i2+2*i3+i4].q[0] = -0.5 + (float_type)i1;
+	  rotation_list[8*i1+4*i2+2*i3+i4].q[1] = -0.5 + (float_type)i2;
+	  rotation_list[8*i1+4*i2+2*i3+i4].q[2] = -0.5 + (float_type)i3;
+	  rotation_list[8*i1+4*i2+2*i3+i4].q[3] = -0.5 + (float_type)i4;
 	}
       }
     }
@@ -72,7 +74,7 @@ int generate_rotation_list(const int n, Quaternion *return_list, double *return_
   
   /* next 8 */
   for (int i = 0; i < 8; i++) {
-    rotation_list[16+i].q[i/2] = -1.0 + 2.0*(double)(i%2);
+    rotation_list[16+i].q[i/2] = -1.0 + 2.0*(float_type)(i%2);
   }
 
   /* last 96 */
@@ -95,9 +97,9 @@ int generate_rotation_list(const int n, Quaternion *return_list, double *return_
     for (int j1 = 0; j1 < 2; j1++) {
       for (int j2 = 0; j2 < 2; j2++) {
 	for (int j3 = 0; j3 < 2; j3++) {
-	  rotation_list[24+8*i+4*j1+2*j2+j3].q[it_list[i][0]-1] = -0.5 + 1.0*(double)j1;
-	  rotation_list[24+8*i+4*j1+2*j2+j3].q[it_list[i][1]-1] = tau*(-0.5 + 1.0*(double)j2);
-	  rotation_list[24+8*i+4*j1+2*j2+j3].q[it_list[i][2]-1] = 1.0/tau*(-0.5 + 1.0*(double)j3);
+	  rotation_list[24+8*i+4*j1+2*j2+j3].q[it_list[i][0]-1] = -0.5 + 1.0*(float_type)j1;
+	  rotation_list[24+8*i+4*j1+2*j2+j3].q[it_list[i][1]-1] = tau*(-0.5 + 1.0*(float_type)j2);
+	  rotation_list[24+8*i+4*j1+2*j2+j3].q[it_list[i][2]-1] = 1.0/tau*(-0.5 + 1.0*(float_type)j3);
 	  rotation_list[24+8*i+4*j1+2*j2+j3].q[it_list[i][3]-1] = 0.0;
 	}
       }
@@ -106,9 +108,9 @@ int generate_rotation_list(const int n, Quaternion *return_list, double *return_
   
   /* get edges */
   /* all pairs of of vertices whose sum is longer than 3 is an edge */
-  double dist2;
+  float_type dist2;
   int count = 0;
-  double edge_cutoff = 3.24;
+  float_type edge_cutoff = 3.24;
 
   int edges[720][2];
   for (int i = 0; i < 120; i++) {
@@ -128,7 +130,7 @@ int generate_rotation_list(const int n, Quaternion *return_list, double *return_
 
   /* get faces */
   /* all pairs of edge and vertice whith a sum larger than 7.5 is a face */
-  double face_cutoff = 7.5;
+  float_type face_cutoff = 7.5;
   int face_done[120];
   for (int i = 0; i < 120; i++) {face_done[i] = 0;}
   count = 0;
@@ -163,13 +165,13 @@ int generate_rotation_list(const int n, Quaternion *return_list, double *return_
   /* get cells */
   /* all pairs of face and vertice with a sum larger than 13.5 is a cell */
 
-  double cell_cutoff = 13.5;
+  float_type cell_cutoff = 13.5;
   int cell_done[120];
   for (int i = 0; i < 120; i++) {cell_done[i] = 0;}
   count = 0;
   int cells[600][4];
-  double cell_centers[4*600];
-  double cell_center_norm;
+  float_type cell_centers[4*600];
+  float_type cell_center_norm;
   for (int j = 0; j < 120; j++) {
     cell_done[j] = 1;
     for (int i = 0; i < 1200; i++) {
@@ -209,11 +211,11 @@ int generate_rotation_list(const int n, Quaternion *return_list, double *return_
   }
 
   /*variables used to calculate the weights */
-  double alpha = acos(1.0/3.0);
-  double f1 = 5.0*alpha/2.0/M_PI;
-  double f0 = 20.0*(3.0*alpha-M_PI)/4.0/M_PI;
-  double f2 = 1.0;
-  double f3 = 1.0;
+  float_type alpha = acos(1.0/3.0);
+  float_type f1 = 5.0*alpha/2.0/M_PI;
+  float_type f0 = 20.0*(3.0*alpha-M_PI)/4.0/M_PI;
+  float_type f2 = 1.0;
+  float_type f3 = 1.0;
 
   int number_of_samples = n_to_samples(n);
   Quaternion *new_list = malloc(number_of_samples*sizeof(Quaternion));
@@ -224,9 +226,9 @@ int generate_rotation_list(const int n, Quaternion *return_list, double *return_
     new_list[i].q[3] = 0.;
   }
 
-  double *weights = malloc(number_of_samples*sizeof(double));
-  double dist3;
-  double scalar_product;
+  float_type *weights = malloc(number_of_samples*sizeof(float_type));
+  float_type dist3;
+  float_type scalar_product;
 
   /* copy vertices */
   for (int i = 0; i < 120; i++) {
@@ -237,9 +239,9 @@ int generate_rotation_list(const int n, Quaternion *return_list, double *return_
     dist3 = pow(pow(new_list[i].q[0],2)+
 		pow(new_list[i].q[1],2)+
 		pow(new_list[i].q[2],2)+
-		pow(new_list[i].q[3],2),(double)3/(double)2);
+		pow(new_list[i].q[3],2),(float_type)3/(float_type)2);
     scalar_product = scalar_product_with_best_center(new_list[i], cell_centers);
-    weights[i] = f0*scalar_product/(double)number_of_samples/dist3;
+    weights[i] = f0*scalar_product/(float_type)number_of_samples/dist3;
   }
 
   /* split edges */
@@ -251,20 +253,20 @@ int generate_rotation_list(const int n, Quaternion *return_list, double *return_
       index = edges_base+edge_verts*i+j;
       for (int k = 0; k < 4; k++) {
 	new_list[index].q[k] = 
-	  (double)(j+1) / (double)(edge_verts+1) * rotation_list[edges[i][0]].q[k] +
-	  (double)(edge_verts-j) / (double)(edge_verts+1) * rotation_list[edges[i][1]].q[k];
+	  (float_type)(j+1) / (float_type)(edge_verts+1) * rotation_list[edges[i][0]].q[k] +
+	  (float_type)(edge_verts-j) / (float_type)(edge_verts+1) * rotation_list[edges[i][1]].q[k];
       }
       dist3 = pow(pow(new_list[index].q[0],2) + pow(new_list[index].q[1],2) +
-		  pow(new_list[index].q[2],2) + pow(new_list[index].q[3],2), (double)3/(double)2);
+		  pow(new_list[index].q[2],2) + pow(new_list[index].q[3],2), (float_type)3/(float_type)2);
       scalar_product = scalar_product_with_best_center(new_list[index], cell_centers);
-      weights[index] = f1*scalar_product/(double)number_of_samples/dist3;
+      weights[index] = f1*scalar_product/(float_type)number_of_samples/dist3;
     }
   }
 
   /* split faces */
   int faces_base = 120 + 720*edge_verts;
   int face_verts = ((n-1)*(n-2))/2;
-  double a,b,c;
+  float_type a,b,c;
   int kc;
   if (face_verts > 0) {
     for (int i = 0; i < 1200; i++) {
@@ -273,9 +275,9 @@ int generate_rotation_list(const int n, Quaternion *return_list, double *return_
 	for (int kb = 2; kb < edge_verts+1; kb++) {
 	  if (ka + kb > edge_verts+1) {
 	    kc = 2*(edge_verts+1)-ka-kb;
-	    a = (double) (edge_verts + 1 - ka) / (double) (3*(edge_verts+1)-ka-kb-kc);
-	    b = (double) (edge_verts + 1 - kb) / (double) (3*(edge_verts+1)-ka-kb-kc);
-	    c = (double) (edge_verts + 1 - kc) / (double) (3*(edge_verts+1)-ka-kb-kc);
+	    a = (float_type) (edge_verts + 1 - ka) / (float_type) (3*(edge_verts+1)-ka-kb-kc);
+	    b = (float_type) (edge_verts + 1 - kb) / (float_type) (3*(edge_verts+1)-ka-kb-kc);
+	    c = (float_type) (edge_verts + 1 - kc) / (float_type) (3*(edge_verts+1)-ka-kb-kc);
 	    index = faces_base+face_verts*i+count;
 	    for (int k = 0; k < 4; k++) {
 	      new_list[index].q[k] =
@@ -284,9 +286,9 @@ int generate_rotation_list(const int n, Quaternion *return_list, double *return_
 		c * rotation_list[faces[i][2]].q[k];
 	    }
 	    dist3 = pow(pow(new_list[index].q[0],2) + pow(new_list[index].q[1],2) +
-			pow(new_list[index].q[2],2) + pow(new_list[index].q[3],2), (double)3/(double)2);
+			pow(new_list[index].q[2],2) + pow(new_list[index].q[3],2), (float_type)3/(float_type)2);
 	    scalar_product = scalar_product_with_best_center(new_list[index], cell_centers);
-	    weights[index] = f2*scalar_product/(double)number_of_samples/dist3;
+	    weights[index] = f2*scalar_product/(float_type)number_of_samples/dist3;
 	    count++;
 	  }
 	}
@@ -297,7 +299,7 @@ int generate_rotation_list(const int n, Quaternion *return_list, double *return_
   /* split cells */
   int cell_base = 120 + 720*edge_verts + 1200*face_verts;
   int cell_verts = ((n-1)*(n-2)*(n-3))/6;
-  double d;
+  float_type d;
   int kd;
   int debug_count = 0;
   if (cell_verts > 0) {
@@ -308,10 +310,10 @@ int generate_rotation_list(const int n, Quaternion *return_list, double *return_
 	  for (int kc = 3; kc < edge_verts+1; kc++) {
 	    kd = 3*(edge_verts+1)-ka-kb-kc;
 	    if (kd >= 3 && kd < edge_verts+1) {
-	      a = (double) (edge_verts + 1 - ka) / (double) (4*(edge_verts+1)-ka-kb-kc-kd);
-	      b = (double) (edge_verts + 1 - kb) / (double) (4*(edge_verts+1)-ka-kb-kc-kd);
-	      c = (double) (edge_verts + 1 - kc) / (double) (4*(edge_verts+1)-ka-kb-kc-kd);
-	      d = (double) (edge_verts + 1 - kd) / (double) (4*(edge_verts+1)-ka-kb-kc-kd);
+	      a = (float_type) (edge_verts + 1 - ka) / (float_type) (4*(edge_verts+1)-ka-kb-kc-kd);
+	      b = (float_type) (edge_verts + 1 - kb) / (float_type) (4*(edge_verts+1)-ka-kb-kc-kd);
+	      c = (float_type) (edge_verts + 1 - kc) / (float_type) (4*(edge_verts+1)-ka-kb-kc-kd);
+	      d = (float_type) (edge_verts + 1 - kd) / (float_type) (4*(edge_verts+1)-ka-kb-kc-kd);
 	      index = cell_base+cell_verts*i+count;
 	      for (int k = 0; k < 4; k++) {
 		new_list[index].q[k] =
@@ -321,9 +323,9 @@ int generate_rotation_list(const int n, Quaternion *return_list, double *return_
 		  d*rotation_list[cells[i][3]].q[k];
 	      }
 	      dist3 = pow(pow(new_list[index].q[0],2) + pow(new_list[index].q[1],2) +
-			  pow(new_list[index].q[2],2) + pow(new_list[index].q[3],2), (double)3/(double)2);
+			  pow(new_list[index].q[2],2) + pow(new_list[index].q[3],2), (float_type)3/(float_type)2);
 	      scalar_product = scalar_product_with_best_center(new_list[index], cell_centers);
-	      weights[index] = f3*scalar_product/(double)number_of_samples/dist3;
+	      weights[index] = f3*scalar_product/(float_type)number_of_samples/dist3;
 	      count++;
 	      debug_count++;
 	    }
@@ -369,7 +371,7 @@ int generate_rotation_list(const int n, Quaternion *return_list, double *return_
   }
   /* end prune */
 
-  double weight_sum = 0.0;
+  float_type weight_sum = 0.0;
   for (int i = 0; i < number_of_samples/2; i++) {
     weight_sum += return_weights[i];
   }
@@ -414,11 +416,11 @@ static PyObject *rotsampling(PyObject *self, PyObject *args, PyObject *kwargs)
   int number_of_rotations = n_to_samples(sampling_n)/2;
   int rotations_dim[] = {number_of_rotations, 4};
   PyObject *rotations_array = (PyObject *)PyArray_FromDims(2, rotations_dim, NPY_FLOAT64);
-  double *rotations_raw = PyArray_DATA((PyArrayObject *)rotations_array);
+  float_type *rotations_raw = PyArray_DATA((PyArrayObject *)rotations_array);
   
   int weights_dim[] = {number_of_rotations};
   PyObject *weights_array = (PyObject *)PyArray_FromDims(1, weights_dim, NPY_FLOAT64);
-  double *weights_raw = PyArray_DATA((PyArrayObject *)weights_array);
+  float_type *weights_raw = PyArray_DATA((PyArrayObject *)weights_array);
 
   generate_rotation_list(sampling_n, (Quaternion*)rotations_raw, weights_raw);
 
